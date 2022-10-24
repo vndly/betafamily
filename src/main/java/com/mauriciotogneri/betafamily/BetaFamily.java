@@ -109,22 +109,38 @@ public class BetaFamily
 
     private static boolean invite(@NotNull Tester tester) throws Exception
     {
-        String form = "memberId=" + tester.id + "&testId=" + TEST_ID + "&deviceId=" + tester.device_id;
-        Request request = request("https://betafamily.com/app-tests/invite-internal", form);
-
-        try (Response response = CLIENT.newCall(request).execute())
+        try
         {
-            if (response.isSuccessful())
-            {
-                String bodyContent = response.body().string();
-                Invitation invitation = new Gson().fromJson(bodyContent, Invitation.class);
+            String form = "memberId=" + tester.id + "&testId=" + TEST_ID + "&deviceId=" + tester.device_id;
+            Request request = request("https://betafamily.com/app-tests/invite-internal", form);
 
-                return invitation.success;
-            }
-            else
+            try (Response response = CLIENT.newCall(request).execute())
             {
-                return false;
+                if (response.isSuccessful())
+                {
+                    String bodyContent = response.body().string();
+                    Invitation invitation = new Gson().fromJson(bodyContent, Invitation.class);
+
+                    return invitation.success;
+                }
+                else
+                {
+                    return false;
+                }
             }
+        }
+        catch (SocketTimeoutException e1)
+        {
+            try
+            {
+                Thread.sleep(5000);
+            }
+            catch (Exception e2)
+            {
+                // ignore
+            }
+
+            return invite(tester);
         }
     }
 
