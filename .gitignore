@@ -1,0 +1,10 @@
+.idea/*
+target
+*.iml
+start.txt
+account.txt
+console.txt
+error.txt
+params.properties
+output/
+out/
