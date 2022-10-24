@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,7 +63,7 @@ public class BetaFamily
                 }
             }
 
-            System.out.println("\rCurrent: " + skip + " - Total invited: " + newTestersInvited);
+            System.out.println("\rCurrent: " + skip + " - Total new invited: " + newTestersInvited);
 
             skip += SHOW;
         }
@@ -70,23 +71,39 @@ public class BetaFamily
 
     private static List<Tester> loadTesters(int skip) throws Exception
     {
-        String form = "testId=" + TEST_ID + "&appTestId=&search=&gender=" + GENDER + "&nationality=&device=&osVersion=&ageMin=" + AGE_MIN + "&ageMax=" + AGE_MAX + "&show=" + SHOW + "&skip=" + skip + "&type=" + TYPE + "&additionalData%5Badults_in_household%5D%5B%5D=&additionalData%5Badults_in_household%5D%5B%5D=&additionalData%5Bchildren_in_household%5D%5B%5D=&additionalData%5Bchildren_in_household%5D%5B%5D=&additionalData%5Beducation%5D=&additionalData%5Bemployment%5D=&additionalData%5Btesting_experience%5D=&additionalData%5Btechnical_experience%5D=";
-        Request request = request("https://betafamily.com/app-tests/members-from-filter", form);
-
-        try (Response response = CLIENT.newCall(request).execute())
+        try
         {
-            String bodyContent = response.body().string();
-            Type listType = new TypeToken<ArrayList<Tester>>()
-            {
-            }.getType();
-            List<Tester> list = new Gson().fromJson(bodyContent, listType);
+            String form = "testId=" + TEST_ID + "&appTestId=&search=&gender=" + GENDER + "&nationality=&device=&osVersion=&ageMin=" + AGE_MIN + "&ageMax=" + AGE_MAX + "&show=" + SHOW + "&skip=" + skip + "&type=" + TYPE + "&additionalData%5Badults_in_household%5D%5B%5D=&additionalData%5Badults_in_household%5D%5B%5D=&additionalData%5Bchildren_in_household%5D%5B%5D=&additionalData%5Bchildren_in_household%5D%5B%5D=&additionalData%5Beducation%5D=&additionalData%5Bemployment%5D=&additionalData%5Btesting_experience%5D=&additionalData%5Btechnical_experience%5D=";
+            Request request = request("https://betafamily.com/app-tests/members-from-filter", form);
 
-            if (list.size() == 0)
+            try (Response response = CLIENT.newCall(request).execute())
             {
-                System.exit(0);
+                String bodyContent = response.body().string();
+                Type listType = new TypeToken<ArrayList<Tester>>()
+                {
+                }.getType();
+                List<Tester> list = new Gson().fromJson(bodyContent, listType);
+
+                if (list.size() == 0)
+                {
+                    System.exit(0);
+                }
+
+                return list.stream().filter(Tester::canBeInvited).collect(Collectors.toList());
+            }
+        }
+        catch (SocketTimeoutException e1)
+        {
+            try
+            {
+                Thread.sleep(5000);
+            }
+            catch (Exception e2)
+            {
+                // ignore
             }
 
-            return list.stream().filter(Tester::canBeInvited).collect(Collectors.toList());
+            return loadTesters(skip);
         }
     }
 
