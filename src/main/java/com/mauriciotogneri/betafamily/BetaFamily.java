@@ -27,18 +27,24 @@ public class BetaFamily
     private static final String TYPE = "android";
 
     private static final Integer SHOW = 200;
+    private static final Integer GENDER = 1; // 0: all, 1: male, 2: female
+    private static final String AGE_MIN = "18"; // "": N/A
+    private static final String AGE_MAX = "35"; // "": N/A
+
     private static final OkHttpClient CLIENT = new OkHttpClient();
     private static final MediaType FORM = MediaType.get("application/x-www-form-urlencoded; charset=UTF-8");
-    private static final String COOKIE = "_ga=GA1.2.1477955044.1664557961; _fbp=fb.1.1664557961578.644249101; _gid=GA1.2.1939713672.1666354985; PHPSESSID=oqkbibjqkl6m6iqbplhr9bhfe3; beta_session=eyJpdiI6ImRhUXFROWhsWFNkOEhpK01LaEtKS055bGRseGxqbVlBdVwvUFpVSCtoZkxzPSIsInZhbHVlIjoiQkhGclpHdVVPR010OVNwMjJWT1JwUm1YZTRQV2xYUDdpYjFjUlZMU0k0ZVRuWlNpY3N3cG5KMU1iZHpFNzE3QVwvSHBSVUk4cmMxR2kxRGFBRVVadHF3PT0iLCJtYWMiOiIwNzYwZWI1NzQ0ZDI5MzcwYjZhZjEzMTQ3ZDlhZjc0YTc4MzAyZjc1MWYyMjIxYWVkYTJhYjk5OWUyMGI0ZjE2In0%3D";
+    private static final String COOKIE = "_ga=GA1.2.1477955044.1664557961;_fbp=fb.1.1664557961578.644249101;_gid=GA1.2.1939713672.1666354985;PHPSESSID=oqkbibjqkl6m6iqbplhr9bhfe3;_dc_gtm_UA-20158100-1=1;beta_session=eyJpdiI6IjljNnVuTCtOT05xRzZIOHN6OTJVbkNjN3lQN05FaFBVR0FkVUlVTVlNdVk9IiwidmFsdWUiOiJ0TTRLT0RGSWZDd2lxbGY5UlVrTTRrOFRhS0t3VVQ5Q0lXekVWRDRHTm81eUltMDdwaWVQM1Z6dERZZFN6YnpmKzAyOFNcL0IwcGFsZDBIcUhQQ2NpZFE9PSIsIm1hYyI6ImNjOTUyNTA1N2QyNmFmYWUzODIzNmQzNGVlMTM3YmRhYjZkZGY2YzJkNGY4OWEyNDc1MThjMTIyNTMzNTg0YjkifQ==";
 
     public static void main(String[] args) throws Exception
     {
         int skip = 0;
-        int testersInvited = 0;
+        int newTestersInvited = 0;
 
         while (true)
         {
             List<Tester> list = loadTesters(skip);
+            int testersToInvite = list.size();
+            int testersInvited = 0;
 
             for (Tester tester : list)
             {
@@ -46,7 +52,9 @@ public class BetaFamily
 
                 if (success)
                 {
+                    newTestersInvited++;
                     testersInvited++;
+                    System.out.print("\r" + testersInvited + "/" + testersToInvite);
                 }
                 else
                 {
@@ -54,7 +62,7 @@ public class BetaFamily
                 }
             }
 
-            System.out.println("Current: " + skip + " - Total invited: " + testersInvited);
+            System.out.println("\rCurrent: " + skip + " - Total invited: " + newTestersInvited);
 
             skip += SHOW;
         }
@@ -62,7 +70,7 @@ public class BetaFamily
 
     private static List<Tester> loadTesters(int skip) throws Exception
     {
-        String form = "testId=" + TEST_ID + "&appTestId=&search=&gender=0&nationality=&device=&osVersion=&ageMin=&ageMax=&show=" + SHOW + "&skip=" + skip + "&type=" + TYPE + "&additionalData%5Badults_in_household%5D%5B%5D=&additionalData%5Badults_in_household%5D%5B%5D=&additionalData%5Bchildren_in_household%5D%5B%5D=&additionalData%5Bchildren_in_household%5D%5B%5D=&additionalData%5Beducation%5D=&additionalData%5Bemployment%5D=&additionalData%5Btesting_experience%5D=&additionalData%5Btechnical_experience%5D=";
+        String form = "testId=" + TEST_ID + "&appTestId=&search=&gender=" + GENDER + "&nationality=&device=&osVersion=&ageMin=" + AGE_MIN + "&ageMax=" + AGE_MAX + "&show=" + SHOW + "&skip=" + skip + "&type=" + TYPE + "&additionalData%5Badults_in_household%5D%5B%5D=&additionalData%5Badults_in_household%5D%5B%5D=&additionalData%5Bchildren_in_household%5D%5B%5D=&additionalData%5Bchildren_in_household%5D%5B%5D=&additionalData%5Beducation%5D=&additionalData%5Bemployment%5D=&additionalData%5Btesting_experience%5D=&additionalData%5Btechnical_experience%5D=";
         Request request = request("https://betafamily.com/app-tests/members-from-filter", form);
 
         try (Response response = CLIENT.newCall(request).execute())
