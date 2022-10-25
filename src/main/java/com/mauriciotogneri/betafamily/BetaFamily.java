@@ -20,12 +20,12 @@ import okhttp3.Response;
 public class BetaFamily
 {
     // iOS
-    //private static final String TEST_ID = "35199";
-    //private static final String TYPE = "ios";
+    private static final String TEST_ID = "35199";
+    private static final String TYPE = "ios";
 
     // Android
-    private static final String TEST_ID = "35200";
-    private static final String TYPE = "android";
+    //private static final String TEST_ID = "35200";
+    //private static final String TYPE = "android";
 
     private static final Integer SHOW = 200;
     private static final Integer GENDER = 1; // 0: all, 1: male, 2: female
